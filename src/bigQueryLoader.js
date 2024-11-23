@@ -1,11 +1,12 @@
 const { BigQuery } = require('@google-cloud/bigquery');
-const path = require('path');
 const { projectId, serviceAccountKey, datasetName } = require('./config');
+const { getTableName, getSchema } = require('./transformation');
 
 const bigquery = new BigQuery({ projectId, keyFilename: serviceAccountKey });
 
-async function loadCSVToBigQuery(fileName, schema) {
-    const tableName = path.basename(fileName, path.extname(fileName));
+async function loadCSVToBigQuery(fileName) {
+    const tableName = getTableName(fileName);
+    const schema = getSchema();
     const dataset = bigquery.dataset(datasetName);
     const table = dataset.table(tableName);
 
