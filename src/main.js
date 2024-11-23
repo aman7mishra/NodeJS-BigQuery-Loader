@@ -1,5 +1,6 @@
 const uploadToGCS = require('./gcsUploader');
 const loadCSVToBigQuery = require('./bigQueryLoader');
+const { preprocessCSV } = require('./transformation');
 
 async function main() {
     const localFilePath = process.argv[2];
@@ -8,16 +9,16 @@ async function main() {
         process.exit(1);
     }
 
-    const schema = [
-        { name: 'id', type: 'INTEGER' },
-        { name: 'name', type: 'STRING' },
-        { name: 'value', type: 'FLOAT' },
-        { name: 'timestamp', type: 'TIMESTAMP' },
-    ];
-
     try {
-        const fileName = await uploadToGCS(localFilePath);
-        await loadCSVToBigQuery(fileName, schema);
+        // Preprocess the CSV file if needed
+        const processedFilePath = preprocessCSV(localFilePath);
+
+        // Upload to GCS
+        const fileName = await uploadToGCS(processedFilePath);
+
+        // Load into BigQuery
+        await loadCSVToBigQuery(fileName);
+
         console.log('CSV uploaded and loaded into BigQuery successfully.');
     } catch (error) {
         console.error('Error during execution:', error);
